@@ -35,3 +35,78 @@ function generateGallery(works) {
 }
 
 generateGallery(works);
+
+//const categoryArray = Array.from(new Set(works.map(work => work.category.name)));
+//map des categories à partir du tableau works
+const categoriesMap = works.map(work => work.category);
+//création d'un nouveau tableau ne contenant que les catégories uniques
+//pour chaques élément de categoryMap, 
+//si il n'existe pas déjà dans categoryArray, il y est ajouté
+const categoriesArray = [];
+categoriesMap.forEach(category => {
+    if (!categoriesArray.find(categoryCopy => categoryCopy.id === category.id)) {
+        categoriesArray.push(category);
+    }
+});
+
+function createFilterBtn() {
+    //récupération div parent
+    const categoriesDiv = document.querySelector(".categories");
+    for (let i = 0; i <= categoriesArray.length; i++) {
+        const filterBtn = document.createElement("button");
+        filterBtn.classList.add("filter-btn");
+        if (i === 0) {
+            filterBtn.innerText = "Tous";
+            filterBtn.id = "filterAll"
+            filterBtn.classList.add("btn-selected")
+        }
+        else {
+            filterBtn.innerText = categoriesArray[i - 1].name;
+            filterBtn.id = `filter${categoriesArray[i - 1].id}`;
+        }
+        categoriesDiv.appendChild(filterBtn);
+    }
+}
+
+createFilterBtn();
+
+function applyFilter() {
+    const filterBtnArray = document.querySelectorAll(".filter-btn");
+    for (let i = 0; i < filterBtnArray.length; i++) {
+        filterBtnArray[i].addEventListener("click", () => {
+            if (i === 0) {
+                document.querySelector(".gallery").innerHTML = "";
+                generateGallery(works);
+                console.log(works);
+            }
+            else {
+                const filteredWorks = works.filter(function (work) {
+                    return work.categoryId === categoriesArray[i - 1].id;
+                });
+                document.querySelector(".gallery").innerHTML = "";
+                generateGallery(filteredWorks);
+                console.log(filteredWorks);
+            }
+            filterBtnArray.forEach(button => {
+                button.classList.remove("btn-selected");
+            });
+            filterBtnArray[i].classList.add("btn-selected");
+        });
+    }
+}
+
+applyFilter();
+
+
+
+
+
+
+
+
+
+
+
+
+
+

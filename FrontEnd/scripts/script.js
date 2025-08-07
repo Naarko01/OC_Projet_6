@@ -1,16 +1,6 @@
-//tentative de récupération depuis le local storage
-let works = window.localStorage.getItem("works");
-if (works === null) {
-    //si pas de data dans le local storage, récupération depuis l'api et création dans le local storage
-    const reponse = await fetch("http://localhost:5678/api/works");
-    works = await reponse.json();
-    const worksValue = JSON.stringify(works);
-    window.localStorage.setItem("works", worksValue);
-}
-else {
-    //si disponible dans le local storage, récupération en JSON
-    works = JSON.parse(works);
-}
+//récupération de works depuis l'API
+const works = await fetch("http://localhost:5678/api/works").then(works => works.json());
+const categories = await fetch("http://localhost:5678/api/categories").then(categories => categories.json());
 
 function generateGallery(works) {
     for (let i = 0; i < works.length; i++) {
@@ -38,21 +28,23 @@ generateGallery(works);
 
 //const categoryArray = Array.from(new Set(works.map(work => work.category.name)));
 //map des categories à partir du tableau works
-const categoriesMap = works.map(work => work.category);
+//const categoriesMap = works.map(work => work.category);
 //création d'un nouveau tableau ne contenant que les catégories uniques
 //pour chaques élément de categoryMap, 
 //si il n'existe pas déjà dans categoryArray, il y est ajouté
-const categoriesArray = [];
-categoriesMap.forEach(category => {
+//const categoriesArray = [];
+/*categoriesMap.forEach(category => {
     if (!categoriesArray.find(categoryCopy => categoryCopy.id === category.id)) {
         categoriesArray.push(category);
     }
 });
+*/
+//refaire un call api plutôt qu'une copie pour les cas ou des catégories sont dispo sans works
 
 function createFilterBtn() {
     //récupération div parent
     const categoriesDiv = document.querySelector(".categories");
-    for (let i = 0; i <= categoriesArray.length; i++) {
+    for (let i = 0; i <= categories.length; i++) {
         const filterBtn = document.createElement("button");
         filterBtn.classList.add("filter-btn");
         if (i === 0) {
@@ -61,8 +53,8 @@ function createFilterBtn() {
             filterBtn.classList.add("btn-selected")
         }
         else {
-            filterBtn.innerText = categoriesArray[i - 1].name;
-            filterBtn.id = `filter${categoriesArray[i - 1].id}`;
+            filterBtn.innerText = categories[i - 1].name;
+            filterBtn.id = `filter${categories[i - 1].id}`;
         }
         categoriesDiv.appendChild(filterBtn);
     }
@@ -81,7 +73,7 @@ function applyFilter() {
             }
             else {
                 const filteredWorks = works.filter(function (work) {
-                    return work.categoryId === categoriesArray[i - 1].id;
+                    return work.categoryId === categories[i - 1].id;
                 });
                 document.querySelector(".gallery").innerHTML = "";
                 generateGallery(filteredWorks);
@@ -96,6 +88,7 @@ function applyFilter() {
 }
 
 applyFilter();
+
 
 
 

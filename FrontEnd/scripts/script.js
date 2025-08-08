@@ -1,7 +1,9 @@
 //récupération de works depuis l'API
 const works = await fetch("http://localhost:5678/api/works").then(works => works.json());
+//récupération des categories depuis l'API
 const categories = await fetch("http://localhost:5678/api/categories").then(categories => categories.json());
 
+//génération du contenu de la gallery avec la data de l'API
 function generateGallery(works) {
     for (let i = 0; i < works.length; i++) {
         //récupération de chaque objet dans la liste donnée en argument
@@ -26,21 +28,34 @@ function generateGallery(works) {
 
 generateGallery(works);
 
-//const categoryArray = Array.from(new Set(works.map(work => work.category.name)));
-//map des categories à partir du tableau works
-//const categoriesMap = works.map(work => work.category);
-//création d'un nouveau tableau ne contenant que les catégories uniques
-//pour chaques élément de categoryMap, 
-//si il n'existe pas déjà dans categoryArray, il y est ajouté
-//const categoriesArray = [];
-/*categoriesMap.forEach(category => {
-    if (!categoriesArray.find(categoryCopy => categoryCopy.id === category.id)) {
-        categoriesArray.push(category);
+const logLink = document.querySelector(".loginLink");
+const portfolioTitle = document.querySelector("#portfolio h2");
+// variable pour tracker le statut login, initialisée à false
+let isLoggedIn = false;
+
+if (window.localStorage.getItem("loginToken") !== null) {
+    //si login
+    isLoggedIn = true;
+    portfolioTitle.style.marginBottom = "92px";
+    logLink.innerText = "logout"
+    applyHeaderBanner();
+    createModifyBtn();
+}
+else {
+    createFilterBtn();
+    applyFilter();
+}
+
+logLink.addEventListener("click", () => {
+    if (isLoggedIn) {
+        window.localStorage.removeItem("loginToken");
+        window.location.href = "index.html";
+    } else {
+        window.location.href = "login.html"
     }
 });
-*/
-//refaire un call api plutôt qu'une copie pour les cas ou des catégories sont dispo sans works
 
+//création des bouton filtres
 function createFilterBtn() {
     //récupération div parent
     const categoriesDiv = document.querySelector(".categories");
@@ -60,8 +75,7 @@ function createFilterBtn() {
     }
 }
 
-createFilterBtn();
-
+//ajout des event listener et de leur logique sur les bouton de filtre
 function applyFilter() {
     const filterBtnArray = document.querySelectorAll(".filter-btn");
     for (let i = 0; i < filterBtnArray.length; i++) {
@@ -87,7 +101,28 @@ function applyFilter() {
     }
 }
 
-applyFilter();
+//bouton "modifier" pour ajouter ou supprimer des travaux de la gallery
+function createModifyBtn() {
+    const modifyBtn = document.createElement("div");
+    modifyBtn.className = "modifyBtn";
+    modifyBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i><p>modifier</p>';
+    portfolioTitle.appendChild(modifyBtn);
+}
+
+//banière noir en en-tête indiquant le mode édition
+function applyHeaderBanner() {
+    const header = document.querySelector("header");
+    const headerH1 = document.querySelector("header h1");
+    const banner = document.createElement("div");
+    banner.className = "banner";
+    banner.innerHTML = '<i class="fa-solid fa-pen-to-square"></i><p>Mode édition</p>';
+    header.insertBefore(banner, headerH1);
+    header.style.marginTop = "97px";
+
+}
+
+
+
 
 
 

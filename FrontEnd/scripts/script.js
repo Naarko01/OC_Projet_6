@@ -176,11 +176,13 @@ async function openPopup() {
     });
 }
 
-//bouton d'ouverture du popup
-const modifyBtn = document.querySelector(".modifyBtn");
-modifyBtn.addEventListener("click", () => {
-    openPopup();
-});
+//bouton d'ouverture du popup (présent uniquement si login)
+if (isLoggedIn) {
+    const modifyBtn = document.querySelector(".modifyBtn");
+    modifyBtn.addEventListener("click", () => {
+        openPopup();
+    });
+}
 
 
 

@@ -46,6 +46,7 @@ else {
     applyFilter();
 }
 
+//event listener pour login/logout
 logLink.addEventListener("click", () => {
     if (isLoggedIn) {
         window.localStorage.removeItem("loginToken");
@@ -118,8 +119,69 @@ function applyHeaderBanner() {
     banner.innerHTML = '<i class="fa-solid fa-pen-to-square"></i><p>Mode édition</p>';
     header.insertBefore(banner, headerH1);
     header.style.marginTop = "97px";
-
 }
+
+//création de la structure du popup
+function createPopup(parentElement) {
+    let popupStruct = `
+    <div class="popup">
+    <i class="closeBtn fa-solid fa-xmark"></i>
+    <h2>Galerie photo</h2>
+    <div class="imgListContainer">
+    <div class="popupImgList">
+    </div>
+    </div>
+    <button>Ajouter une photo</button>
+    </div>`;
+    parentElement.innerHTML = popupStruct;
+    parentElement.classList.add("active");
+}
+
+//création de la liste d'image de la première page du popup
+function createWorkList(parentElement, uploadedWorks) {
+    for (let i = 0; i < uploadedWorks.length; i++) {
+        const workArticle = document.createElement("article");
+        workArticle.classList.add("workImg");
+        let workImg = `
+        <div class="deleteBtn">
+        <i class="fa-solid fa-trash-can"></i>
+		</div>
+		<img src="${uploadedWorks[i].imageUrl}" alt="${uploadedWorks[i].title}">`;
+        workArticle.innerHTML = workImg;
+        parentElement.appendChild(workArticle);
+    }
+}
+
+function closePopup(popupElement) {
+    popupElement.innerHTML = "";
+    popupElement.classList.remove("active");
+}
+
+//affichage popup + fetch api + listener pour la fermeture
+async function openPopup() {
+    const uploadedWorks = await fetch("http://localhost:5678/api/works").then(uploadedWorks => uploadedWorks.json());
+    const popupElement = document.querySelector(".popupBackground");
+    createPopup(popupElement);
+    const workList = document.querySelector(".popupImgList")
+    createWorkList(workList, uploadedWorks);
+
+    popupElement.addEventListener("click", () => {
+        closePopup(popupElement);
+        //actuellement la fermeture a lieu même au click sur la div enfant, à corriger
+    })
+
+    const closeBtn = document.querySelector(".closeBtn");
+    closeBtn.addEventListener("click", () => {
+        closePopup(popupElement);
+    });
+}
+
+//bouton d'ouverture du popup
+const modifyBtn = document.querySelector(".modifyBtn");
+modifyBtn.addEventListener("click", () => {
+    openPopup();
+});
+
 
 
 

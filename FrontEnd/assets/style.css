@@ -160,6 +160,7 @@ header {
 	justify-content: center;
 	align-items: center;
 	gap: 11.5px;
+	z-index: 0;
 }
 
 .banner i {
@@ -379,6 +380,109 @@ footer nav ul {
 	display: flex;
 	justify-content: flex-end;
 	margin: 2em
+}
+
+.active {
+	display: flex !important;
+}
+
+.popupBackground {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 1;
+	justify-content: center;
+	align-items: center;
+
+}
+
+.popup {
+	position: relative;
+	background-color: white;
+	border-radius: 10px;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-left: 105px;
+	padding-right: 105px;
+}
+
+.popup .closeBtn {
+	position: absolute;
+	top: 26px;
+	right: 30px;
+	font-size: 24px;
+	cursor: pointer;
+}
+
+.popup h2 {
+	font-family: 'Work Sans';
+	font-size: 26px;
+	font-weight: 400;
+	color: black;
+	margin-top: 60px;
+	margin-bottom: 46px;
+}
+
+.imgListContainer {
+	text-align: center;
+	border-bottom: 1px solid #B3B3B3;
+}
+
+.popupImgList {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	column-gap: 9px;
+	row-gap: 29px;
+	padding-bottom: 67px;
+}
+
+.workImg {
+	width: 76.86px;
+	height: 102.57px;
+	position: relative;
+}
+
+.workImg img {
+	width: 100%;
+	height: 100%;
+}
+
+.deleteBtn {
+	position: absolute;
+	width: 17px;
+	height: 17px;
+	background-color: black;
+	right: 5px;
+	top: 6px;
+	border-radius: 15%;
+}
+
+.deleteBtn i {
+	color: white;
+	font-size: 9px;
+	text-align: center;
+	cursor: pointer;
+}
+
+.popup button {
+	font-family: 'Syne';
+	font-size: 14px;
+	font-weight: 700;
+	color: white;
+	background-color: #1D6154;
+	width: 267px;
+	height: 36px;
+	text-align: center;
+	border-radius: 60px;
+	border: none;
+	margin-top: 38px;
+	margin-bottom: 45px;
 }
 
 /********* login page specific*********/

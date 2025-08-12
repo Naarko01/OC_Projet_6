@@ -63,6 +63,13 @@ if (isLoggedIn) {
     });
 }
 
+//initialisation des variables utilisées pour la gestion de la modale
+let workImgList;
+let popupBtn;
+let closeBtn;
+let popupTitle;
+const popupElement = document.querySelector(".popupBackground");
+
 //création des bouton filtres
 function createFilterBtn() {
     //récupération div parent
@@ -129,19 +136,45 @@ function applyHeaderBanner() {
 }
 
 //création de la structure du popup
-function createPopup(parentElement) {
-    let popupStruct = `
+function createPopup() {
+    const popupStruct = `
     <div class="popup">
-    <i class="closeBtn fa-solid fa-xmark"></i>
-    <h2>Galerie photo</h2>
-    <div class="imgListContainer">
-    <div class="popupImgList">
-    </div>
-    </div>
-    <button>Ajouter une photo</button>
+        <i class="closeBtn fa-solid fa-xmark"></i>
+        <h2>Galerie photo</h2>
+        <div class="imgListContainer">
+            <div class="popupImgList">
+            </div>
+        </div>
+        <button id="popupBtn">Ajouter une photo</button>
     </div>`;
-    parentElement.innerHTML = popupStruct;
-    parentElement.classList.add("active");
+    popupElement.innerHTML = popupStruct;
+    popupElement.classList.add("active");
+}
+
+//création et affichage de la structure de la seconde page du popup 
+function createPopupUploadPage() {
+    let popup = document.querySelector(".popup");
+    const addImgForm = document.createElement("form");
+    workImgList = document.querySelector(".imgListContainer");
+    let formStruct = `
+	<div class="fileUploadContainer">
+		<img src="./assets/icons/picture-svgrepo-com1.png" alt="">
+		<label for="fileUpload">+ Ajouter photo</label>
+		<input type="file" id="fileUpload" name="fileUpload" accept=".jpg, .png">
+		<p>jpg, png : 4mo max</p>
+	</div>
+	<label for="uploadTitle">Titre</label>
+	<input type="text" name="uploadTitle" id="uploadTitle">
+	<label for="categorieSelect">Catégorie</label>
+	<select name="categories" id="categorieSelect" form="addImgForm"></select>`;
+    popupTitle = document.querySelector(".popup h2");
+    popupTitle.innerText = "Ajout photo";
+    popupBtn.innerText = "Valider";
+    addImgForm.setAttribute("id", "addImgForm");
+    addImgForm.innerHTML = formStruct;
+    popup.removeChild(workImgList);
+    popup.insertBefore(addImgForm, popupBtn);
+    popupBtn.removeEventListener("click", createPopupUploadPage);
 }
 
 //création de la liste d'image de la première page du popup
@@ -151,7 +184,7 @@ function createWorkList(parentElement, works) {
         workArticle.classList.add("workImg");
         let workImg = `
         <div class="deleteBtn">
-        <i class="fa-solid fa-trash-can"></i>
+            <i class="fa-solid fa-trash-can"></i>
 		</div>
 		<img src="${works[i].imageUrl}" alt="${works[i].title}">`;
         workArticle.innerHTML = workImg;
@@ -159,28 +192,32 @@ function createWorkList(parentElement, works) {
     }
 }
 
-//affichage popup + fetch api + listener pour la fermeture
+//affichage popup + listener pour la fermeture
 function openPopup() {
-    const popupElement = document.querySelector(".popupBackground");
-    createPopup(popupElement);
-    const workImgList = document.querySelector(".popupImgList")
+    createPopup();
+    workImgList = document.querySelector(".popupImgList");
     createWorkList(workImgList, works);
 
     popupElement.addEventListener("click", (event) => {
         if (event.target === event.currentTarget) {
-            closePopup(popupElement);
+            closePopup();
         }
     });
 
-    const closeBtn = document.querySelector(".closeBtn");
+    closeBtn = document.querySelector(".closeBtn");
     closeBtn.addEventListener("click", () => {
-        closePopup(popupElement);
+        closePopup();
     });
+
+    popupBtn = document.getElementById("popupBtn");
+    popupBtn.addEventListener("click", createPopupUploadPage);
 }
 
-function closePopup(popupElement) {
-    popupElement.innerHTML = "";
+function closePopup() {
     popupElement.classList.remove("active");
+    popupElement.removeEventListener("click", closePopup);
+    closeBtn.removeEventListener("click", closePopup);
+    popupElement.innerHTML = "";
 }
 
 

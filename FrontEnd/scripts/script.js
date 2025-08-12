@@ -34,7 +34,6 @@ const portfolioTitle = document.querySelector("#portfolio h2");
 let isLoggedIn = false;
 
 if (window.localStorage.getItem("loginToken") !== null) {
-    //si login
     isLoggedIn = true;
     portfolioTitle.style.marginBottom = "92px";
     logLink.innerText = "logout"
@@ -55,6 +54,14 @@ logLink.addEventListener("click", () => {
         window.location.href = "login.html"
     }
 });
+
+//bouton d'ouverture du popup (présent uniquement si login)
+if (isLoggedIn) {
+    const modifyBtn = document.querySelector(".modifyBtn");
+    modifyBtn.addEventListener("click", () => {
+        openPopup();
+    });
+}
 
 //création des bouton filtres
 function createFilterBtn() {
@@ -138,37 +145,32 @@ function createPopup(parentElement) {
 }
 
 //création de la liste d'image de la première page du popup
-function createWorkList(parentElement, uploadedWorks) {
-    for (let i = 0; i < uploadedWorks.length; i++) {
+function createWorkList(parentElement, works) {
+    for (let i = 0; i < works.length; i++) {
         const workArticle = document.createElement("article");
         workArticle.classList.add("workImg");
         let workImg = `
         <div class="deleteBtn">
         <i class="fa-solid fa-trash-can"></i>
 		</div>
-		<img src="${uploadedWorks[i].imageUrl}" alt="${uploadedWorks[i].title}">`;
+		<img src="${works[i].imageUrl}" alt="${works[i].title}">`;
         workArticle.innerHTML = workImg;
         parentElement.appendChild(workArticle);
     }
 }
 
-function closePopup(popupElement) {
-    popupElement.innerHTML = "";
-    popupElement.classList.remove("active");
-}
-
 //affichage popup + fetch api + listener pour la fermeture
-async function openPopup() {
-    const uploadedWorks = await fetch("http://localhost:5678/api/works").then(uploadedWorks => uploadedWorks.json());
+function openPopup() {
     const popupElement = document.querySelector(".popupBackground");
     createPopup(popupElement);
-    const workList = document.querySelector(".popupImgList")
-    createWorkList(workList, uploadedWorks);
+    const workImgList = document.querySelector(".popupImgList")
+    createWorkList(workImgList, works);
 
-    popupElement.addEventListener("click", () => {
-        closePopup(popupElement);
-        //actuellement la fermeture a lieu même au click sur la div enfant, à corriger
-    })
+    popupElement.addEventListener("click", (event) => {
+        if (event.target === event.currentTarget) {
+            closePopup(popupElement);
+        }
+    });
 
     const closeBtn = document.querySelector(".closeBtn");
     closeBtn.addEventListener("click", () => {
@@ -176,13 +178,15 @@ async function openPopup() {
     });
 }
 
-//bouton d'ouverture du popup (présent uniquement si login)
-if (isLoggedIn) {
-    const modifyBtn = document.querySelector(".modifyBtn");
-    modifyBtn.addEventListener("click", () => {
-        openPopup();
-    });
+function closePopup(popupElement) {
+    popupElement.innerHTML = "";
+    popupElement.classList.remove("active");
 }
+
+
+
+
+
 
 
 

@@ -1,16 +1,17 @@
 const httpAdresse = "http://localhost:5678";
 //récupération de works depuis l'API
-const works = await fetch(`${httpAdresse}/api/works`).then(works => works.json());
+const works = await fetch(`${httpAdresse}/api/works`).then(res => res.json());
 //récupération des categories depuis l'API
-const categories = await fetch(`${httpAdresse}/api/categories`).then(categories => categories.json());
+const categories = await fetch(`${httpAdresse}/api/categories`).then(res => res.json());
 
 //génération du contenu de la gallery avec la data de l'API
 function generateGallery(works) {
+    //récupération de l'élément parent du DOM et nettoyage en cas d'actualisation
+    const galleryDiv = document.querySelector(".gallery");
+    galleryDiv.innerHTML = "";
     for (let i = 0; i < works.length; i++) {
         //récupération de chaque objet dans la liste donnée en argument
         const work = works[i];
-        //récupération de l'élément parent du DOM
-        const galleryDiv = document.querySelector(".gallery");
         //création de l'élément qui contiendra les balises
         const workElement = document.createElement("figure");
         //création des balises
@@ -33,8 +34,9 @@ const logLink = document.querySelector(".loginLink");
 const portfolioTitle = document.querySelector("#portfolio h2");
 // variable pour tracker le statut login, initialisée à false
 let isLoggedIn = false;
+const loginToken = window.sessionStorage.getItem("loginToken");
 
-if (window.sessionStorage.getItem("loginToken") !== null) {
+if (loginToken !== null) {
     isLoggedIn = true;
     portfolioTitle.style.marginBottom = "92px";
     logLink.innerText = "logout"
@@ -63,13 +65,6 @@ if (isLoggedIn) {
         openPopup();
     });
 }
-
-//initialisation des variables utilisées pour la gestion de la modale
-let workImgList;
-let popupBtn;
-let closeBtn;
-let popupTitle;
-const popupElement = document.querySelector(".popupBackground");
 
 //création des bouton filtres
 function createFilterBtn() {
@@ -136,6 +131,16 @@ function applyHeaderBanner() {
     header.style.marginTop = "97px";
 }
 
+//initialisation des variables utilisées pour la gestion de la modale
+let workImgList;
+let popupBtn;
+let closeBtn;
+let popupTitle;
+let imgListContainer;
+let addImgForm;
+let previousBtn;
+const popupElement = document.querySelector(".popupBackground");
+
 //création de la structure du popup
 function createPopup() {
     const popupStruct = `
@@ -147,21 +152,64 @@ function createPopup() {
             </div>
         </div>
         <form id="addImgForm">
+        <i class="previousBtn fa-solid fa-arrow-left"></i>
 	    <div class="fileUploadContainer">
-	    	<img src="./assets/icons/picture-svgrepo-com1.png" alt="">
+	    	<img id="previewImg" src="./assets/icons/picture-svgrepo-com1.png" alt="">
 	    	<label for="fileUpload">+ Ajouter photo</label>
-	    	<input type="file" id="fileUpload" name="fileUpload" accept=".jpg, .png">
+	    	<input type="file" id="fileUpload" name="image" accept=".jpg, .png">
 	    	<p>jpg, png : 4mo max</p>
 	    </div>
 	    <label for="uploadTitle">Titre</label>
-	    <input type="text" name="uploadTitle" id="uploadTitle">
+	    <input type="text" name="title" id="uploadTitle" required>
 	    <label for="categorieSelect">Catégorie</label>
-	    <select name="categories" id="categorieSelect" form="addImgForm"></select>
+	    <select name="category" id="categorieSelect" form="addImgForm" required>
+            <option value="" selected></option>
+        </select>
         </form>
         <button id="popupBtn">Ajouter une photo</button>
     </div>`;
     popupElement.innerHTML = popupStruct;
     popupElement.classList.add("active");
+
+    createFormSelect();
+    addInputFilePreview();
+
+    imgListContainer = document.querySelector(".imgListContainer");
+    addImgForm = document.getElementById("addImgForm");
+    popupTitle = document.querySelector(".popup h2");
+    closeBtn = document.querySelector(".closeBtn");
+    previousBtn = document.querySelector(".previousBtn");
+    popupBtn = document.getElementById("popupBtn");
+    workImgList = document.querySelector(".popupImgList");
+}
+
+//création des options de l'inpu select du formulaire
+function createFormSelect() {
+    const categorieSelect = document.getElementById("categorieSelect");
+    categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category.id;
+        option.textContent = category.name;
+        categorieSelect.appendChild(option);
+    });
+}
+
+//ajout de la prévisualisation de l'image sélectionnée pour l'upload 
+function addInputFilePreview() {
+    const fileInput = document.getElementById("fileUpload");
+    const previewImg = document.getElementById("previewImg");
+    fileInput.addEventListener("change", () => {
+        const file = fileInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewImg.src = "./assets/icons/picture-svgrepo-com1.png";
+        }
+    });
 }
 
 //création de la liste d'image de la première page du popup
@@ -170,19 +218,44 @@ function createWorkList(parentElement, works) {
         const workArticle = document.createElement("article");
         workArticle.classList.add("workImg");
         let workImg = `
-        <div class="deleteBtn">
+        <div class="deleteBtn" data-id="${works[i].id}">
             <i class="fa-solid fa-trash-can"></i>
 		</div>
 		<img src="${works[i].imageUrl}" alt="${works[i].title}">`;
         workArticle.innerHTML = workImg;
         parentElement.appendChild(workArticle);
     }
+
+    const deleteBtnList = document.querySelectorAll(".deleteBtn");
+    deleteBtnList.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const workId = btn.getAttribute("data-id");
+            deleteWork(workId);
+        });
+    });
+}
+
+async function deleteWork(workId) {
+    const response = await fetch(`${httpAdresse}/api/works/${workId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${loginToken}`
+        }
+    });
+    if (response.ok) {
+        const updatedWorks = await fetch(`${httpAdresse}/api/works`).then(res => res.json());
+        workImgList.innerHTML = "";
+        createWorkList(workImgList, updatedWorks);
+        generateGallery(updatedWorks);
+    }
+    else {
+        alert("Erreur lors de la suppression");
+    }
 }
 
 //affichage popup + listener pour la fermeture
 function openPopup() {
     createPopup();
-    workImgList = document.querySelector(".popupImgList");
     createWorkList(workImgList, works);
 
     popupElement.addEventListener("click", (event) => {
@@ -190,28 +263,66 @@ function openPopup() {
             closePopup();
         }
     });
-
-    closeBtn = document.querySelector(".closeBtn");
     closeBtn.addEventListener("click", closePopup);
-
-    popupBtn = document.getElementById("popupBtn");
+    previousBtn.addEventListener("click", previousPopup);
     popupBtn.addEventListener("click", nextPopup);
+    addImgForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+    });
+
 }
 
+//update du titre et du bouton de validation lors du changement de popup
+function updatePopup() {
+    if (addImgForm.classList.contains("active")) {
+        popupTitle.innerText = "Ajout photo";
+        popupBtn.innerText = "Valider";
+        popupBtn.removeEventListener("click", nextPopup);
+        popupBtn.addEventListener("click", handleUploadForm);
+    }
+    else {
+        popupTitle.innerText = "Galerie photo";
+        popupBtn.innerText = "Ajouter une photo";
+        popupBtn.addEventListener("click", handleUploadForm);
+        popupBtn.addEventListener("click", nextPopup);
+    }
+}
+
+async function handleUploadForm() {
+    const response = await fetch(`${httpAdresse}/api/works`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${loginToken}`
+        },
+        body: new FormData(addImgForm)
+    });
+    switch (response.status) {
+        case 201:
+            const titleInput = document.getElementById("uploadTitle");
+            titleInput.textContent = "";
+            document.getElementById("categorieSelect").value = "";
+            document.getElementById("fileUpload").value = "";
+            break;
+        case 401:
+
+            break;
+        default:
+
+            break;
+    }
+}
+
+//modifications pour passage du premier au second popup
 function nextPopup() {
-    const imgListContainer = document.querySelector(".imgListContainer");
-    const addImgForm = document.getElementById("addImgForm");
     imgListContainer.setAttribute("hidden", "true");
     addImgForm.classList.add("active");
     updatePopup();
 }
 
-//update du titre et du bouton de validation
-function updatePopup() {
-    popupTitle = document.querySelector(".popup h2");
-    popupTitle.innerText = "Ajout photo";
-    popupBtn.innerText = "Valider";
-    popupBtn.removeEventListener("click", nextPopup);
+function previousPopup() {
+    imgListContainer.removeAttribute("hidden");
+    addImgForm.classList.remove("active");
+    updatePopup();
 }
 
 function closePopup() {

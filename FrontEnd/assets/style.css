@@ -472,7 +472,7 @@ footer nav ul {
 
 #addImgForm {
 	border-bottom: 1px solid #B3B3B3;
-	display: flex;
+	display: none;
 	flex-direction: column;
 	width: 420px;
 }

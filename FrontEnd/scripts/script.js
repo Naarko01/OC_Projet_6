@@ -1,7 +1,8 @@
+const httpAdresse = "http://localhost:5678";
 //récupération de works depuis l'API
-const works = await fetch("http://localhost:5678/api/works").then(works => works.json());
+const works = await fetch(`${httpAdresse}/api/works`).then(works => works.json());
 //récupération des categories depuis l'API
-const categories = await fetch("http://localhost:5678/api/categories").then(categories => categories.json());
+const categories = await fetch(`${httpAdresse}/api/categories`).then(categories => categories.json());
 
 //génération du contenu de la gallery avec la data de l'API
 function generateGallery(works) {
@@ -33,7 +34,7 @@ const portfolioTitle = document.querySelector("#portfolio h2");
 // variable pour tracker le statut login, initialisée à false
 let isLoggedIn = false;
 
-if (window.localStorage.getItem("loginToken") !== null) {
+if (window.sessionStorage.getItem("loginToken") !== null) {
     isLoggedIn = true;
     portfolioTitle.style.marginBottom = "92px";
     logLink.innerText = "logout"
@@ -48,7 +49,7 @@ else {
 //event listener pour login/logout
 logLink.addEventListener("click", () => {
     if (isLoggedIn) {
-        window.localStorage.removeItem("loginToken");
+        window.sessionStorage.removeItem("loginToken");
         window.location.href = "index.html";
     } else {
         window.location.href = "login.html"
@@ -145,36 +146,22 @@ function createPopup() {
             <div class="popupImgList">
             </div>
         </div>
+        <form id="addImgForm">
+	    <div class="fileUploadContainer">
+	    	<img src="./assets/icons/picture-svgrepo-com1.png" alt="">
+	    	<label for="fileUpload">+ Ajouter photo</label>
+	    	<input type="file" id="fileUpload" name="fileUpload" accept=".jpg, .png">
+	    	<p>jpg, png : 4mo max</p>
+	    </div>
+	    <label for="uploadTitle">Titre</label>
+	    <input type="text" name="uploadTitle" id="uploadTitle">
+	    <label for="categorieSelect">Catégorie</label>
+	    <select name="categories" id="categorieSelect" form="addImgForm"></select>
+        </form>
         <button id="popupBtn">Ajouter une photo</button>
     </div>`;
     popupElement.innerHTML = popupStruct;
     popupElement.classList.add("active");
-}
-
-//création et affichage de la structure de la seconde page du popup 
-function createPopupUploadPage() {
-    let popup = document.querySelector(".popup");
-    const addImgForm = document.createElement("form");
-    workImgList = document.querySelector(".imgListContainer");
-    let formStruct = `
-	<div class="fileUploadContainer">
-		<img src="./assets/icons/picture-svgrepo-com1.png" alt="">
-		<label for="fileUpload">+ Ajouter photo</label>
-		<input type="file" id="fileUpload" name="fileUpload" accept=".jpg, .png">
-		<p>jpg, png : 4mo max</p>
-	</div>
-	<label for="uploadTitle">Titre</label>
-	<input type="text" name="uploadTitle" id="uploadTitle">
-	<label for="categorieSelect">Catégorie</label>
-	<select name="categories" id="categorieSelect" form="addImgForm"></select>`;
-    popupTitle = document.querySelector(".popup h2");
-    popupTitle.innerText = "Ajout photo";
-    popupBtn.innerText = "Valider";
-    addImgForm.setAttribute("id", "addImgForm");
-    addImgForm.innerHTML = formStruct;
-    popup.removeChild(workImgList);
-    popup.insertBefore(addImgForm, popupBtn);
-    popupBtn.removeEventListener("click", createPopupUploadPage);
 }
 
 //création de la liste d'image de la première page du popup
@@ -205,12 +192,26 @@ function openPopup() {
     });
 
     closeBtn = document.querySelector(".closeBtn");
-    closeBtn.addEventListener("click", () => {
-        closePopup();
-    });
+    closeBtn.addEventListener("click", closePopup);
 
     popupBtn = document.getElementById("popupBtn");
-    popupBtn.addEventListener("click", createPopupUploadPage);
+    popupBtn.addEventListener("click", nextPopup);
+}
+
+function nextPopup() {
+    const imgListContainer = document.querySelector(".imgListContainer");
+    const addImgForm = document.getElementById("addImgForm");
+    imgListContainer.setAttribute("hidden", "true");
+    addImgForm.classList.add("active");
+    updatePopup();
+}
+
+//update du titre et du bouton de validation
+function updatePopup() {
+    popupTitle = document.querySelector(".popup h2");
+    popupTitle.innerText = "Ajout photo";
+    popupBtn.innerText = "Valider";
+    popupBtn.removeEventListener("click", nextPopup);
 }
 
 function closePopup() {
@@ -219,6 +220,8 @@ function closePopup() {
     closeBtn.removeEventListener("click", closePopup);
     popupElement.innerHTML = "";
 }
+
+
 
 
 

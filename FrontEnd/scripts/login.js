@@ -22,20 +22,47 @@ function loginRequest(reqBody) {
         console.log(response);
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message) || "Erreur inconnu lors de la connexion";
+            const error = new Error(errorData.message);
+            error.status = response.status;
+            throw error;
         }
         const data = await response.json();
         window.sessionStorage.setItem("loginToken", data.token);
         window.location.href = "index.html";
-    })).catch(error => errorHandling(error.message));
+    })).catch(error => errorHandling(error.status));
 }
 
 function errorHandling(error) {
     const errorMessage = document.createElement("p");
     const errorDisplay = document.getElementById("errorDisplay");
-    errorMessage.innerText = error;
     errorDisplay.innerHTML = "";
+    switch (error) {
+        case 401:
+            errorMessage.innerText = "Mot de passe incorrect";
+            passwordInput.classList.remove("inputError");
+            passwordInput.classList.add("inputError");
+            break;
+        case 404:
+            errorMessage.innerText = "Adresse mail inconnue";
+            mailInput.classList.remove("inputError");
+            mailInput.classList.add("inputError");
+            break;
+        default:
+            errorMessage.innerText = "Échec de la connexion";
+            mailInput.classList.remove("inputError");
+            mailInput.classList.add("inputError");
+            passwordInput.classList.remove("inputError");
+            passwordInput.classList.add("inputError");
+            break;
+    }
     errorDisplay.appendChild(errorMessage);
-    mailInput.classList.remove("inputError");
-    mailInput.classList.add("inputError");
+
+    passwordInput.addEventListener("change", () => {
+        passwordInput.classList.remove("inputError");
+        errorDisplay.innerHTML = "";
+    });
+    mailInput.addEventListener("change", () => {
+        mailInput.classList.remove("inputError");
+        errorDisplay.innerHTML = "";
+    })
 }

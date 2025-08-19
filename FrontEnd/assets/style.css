@@ -617,7 +617,7 @@ label[for="categorieSelect"] {
 }
 
 .loginPassword {
-	margin-bottom: 37px;
+	margin-bottom: 15.5px;
 }
 
 .loginForm a {
@@ -627,13 +627,15 @@ label[for="categorieSelect"] {
 #loginBtn {
 	padding: 10px 38px;
 	margin-bottom: 28px;
+	margin-top: 15.5px;
 	border: none;
 	cursor: pointer;
 }
 
 #errorDisplay {
-	height: 24px;
-	margin-top: 50px;
+	height: fit-content;
+	min-height: 16px;
+	text-align: center;
 }
 
 #errorDisplay p {

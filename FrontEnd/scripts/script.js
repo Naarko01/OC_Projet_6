@@ -94,7 +94,6 @@ function applyFilter() {
             if (i === 0) {
                 document.querySelector(".gallery").innerHTML = "";
                 generateGallery(works);
-                console.log(works);
             }
             else {
                 const filteredWorks = works.filter(function (work) {
@@ -102,7 +101,6 @@ function applyFilter() {
                 });
                 document.querySelector(".gallery").innerHTML = "";
                 generateGallery(filteredWorks);
-                console.log(filteredWorks);
             }
             filterBtnArray.forEach(button => {
                 button.classList.remove("btn-selected");
@@ -183,7 +181,7 @@ function createPopup() {
     workImgList = document.querySelector(".popupImgList");
 }
 
-//création des options de l'inpu select du formulaire
+//création des options de l'input select du formulaire
 function createFormSelect() {
     const categorieSelect = document.getElementById("categorieSelect");
     categories.forEach(category => {
@@ -200,7 +198,7 @@ function addInputFilePreview() {
     const previewImg = document.getElementById("previewImg");
     fileInput.addEventListener("change", () => {
         const file = fileInput.files[0];
-        if (file) {
+        if (file !== null && file !== undefined) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 previewImg.src = e.target.result;
@@ -253,7 +251,7 @@ async function deleteWork(workId) {
     }
 }
 
-//affichage popup + listener pour la fermeture
+//affichage popup + listener 
 function openPopup() {
     createPopup();
     createWorkList(workImgList, works);
@@ -283,7 +281,7 @@ function updatePopup() {
     else {
         popupTitle.innerText = "Galerie photo";
         popupBtn.innerText = "Ajouter une photo";
-        popupBtn.addEventListener("click", handleUploadForm);
+        popupBtn.removeEventListener("click", handleUploadForm);
         popupBtn.addEventListener("click", nextPopup);
     }
 }
@@ -299,9 +297,15 @@ async function handleUploadForm() {
     switch (response.status) {
         case 201:
             const titleInput = document.getElementById("uploadTitle");
-            titleInput.textContent = "";
+            const fileUpload = document.getElementById("fileUpload");
+            titleInput.value = "";
             document.getElementById("categorieSelect").value = "";
-            document.getElementById("fileUpload").value = "";
+            fileUpload.value = "";
+            fileUpload.dispatchEvent(new Event("change"));
+            const updatedWorks = await fetch(`${httpAdresse}/api/works`).then(res => res.json());
+            workImgList.innerHTML = "";
+            createWorkList(workImgList, updatedWorks);
+            generateGallery(updatedWorks);
             break;
         case 401:
 
@@ -312,7 +316,7 @@ async function handleUploadForm() {
     }
 }
 
-//modifications pour passage du premier au second popup
+//modifications pour switch entre les deux popup
 function nextPopup() {
     imgListContainer.setAttribute("hidden", "true");
     addImgForm.classList.add("active");

@@ -34,7 +34,7 @@ function loginRequest(reqBody) {
 
 function errorHandling(error) {
     const errorMessage = document.createElement("p");
-    const errorDisplay = document.getElementById("errorDisplay");
+    const errorDisplay = document.querySelector(".errorDisplay");
     errorDisplay.innerHTML = "";
     switch (error) {
         case 401:

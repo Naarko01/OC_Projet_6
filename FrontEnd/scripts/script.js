@@ -137,6 +137,7 @@ let popupTitle;
 let imgListContainer;
 let addImgForm;
 let previousBtn;
+let statusFeedback;
 const popupElement = document.querySelector(".popupBackground");
 
 //création de la structure du popup
@@ -163,6 +164,7 @@ function createPopup() {
 	    <select name="category" id="categorieSelect" form="addImgForm" required>
             <option value="" selected></option>
         </select>
+        <div class="statusFeedback"></div>
         </form>
         <button id="popupBtn">Ajouter une photo</button>
     </div>`;
@@ -179,6 +181,7 @@ function createPopup() {
     previousBtn = document.querySelector(".previousBtn");
     popupBtn = document.getElementById("popupBtn");
     workImgList = document.querySelector(".popupImgList");
+    statusFeedback = document.querySelector(".statusFeedback");
 }
 
 //création des options de l'input select du formulaire
@@ -196,6 +199,8 @@ function createFormSelect() {
 function addInputFilePreview() {
     const fileInput = document.getElementById("fileUpload");
     const previewImg = document.getElementById("previewImg");
+    const fileLabel = document.querySelector('label[for="fileUpload"]');
+    const fileContainerText = document.querySelector(".fileUploadContainer p");
     fileInput.addEventListener("change", () => {
         const file = fileInput.files[0];
         if (file !== null && file !== undefined) {
@@ -204,8 +209,14 @@ function addInputFilePreview() {
                 previewImg.src = e.target.result;
             };
             reader.readAsDataURL(file);
+            fileLabel.setAttribute("hidden", "true");
+            fileContainerText.setAttribute("hidden", "true");
+            previewImg.classList.add("selectedPreview");
         } else {
             previewImg.src = "./assets/icons/picture-svgrepo-com1.png";
+            fileLabel.removeAttribute("hidden");
+            fileContainerText.removeAttribute("hidden");
+            previewImg.classList.remove("selectedPreview");
         }
     });
 }
@@ -252,9 +263,10 @@ async function deleteWork(workId) {
 }
 
 //affichage popup + listener 
-function openPopup() {
+async function openPopup() {
     createPopup();
-    createWorkList(workImgList, works);
+    const updatedWorks = await fetch(`${httpAdresse}/api/works`).then(res => res.json());
+    createWorkList(workImgList, updatedWorks);
 
     popupElement.addEventListener("click", (event) => {
         if (event.target === event.currentTarget) {
@@ -273,12 +285,18 @@ function openPopup() {
 //update du titre et du bouton de validation lors du changement de popup
 function updatePopup() {
     if (addImgForm.classList.contains("active")) {
+        //accès au popup d'upload
         popupTitle.innerText = "Ajout photo";
         popupBtn.innerText = "Valider";
         popupBtn.removeEventListener("click", nextPopup);
         popupBtn.addEventListener("click", handleUploadForm);
     }
     else {
+        //retour au popup liste d'image
+        const fileUpload = document.getElementById("fileUpload");
+        fileUpload.value = "";
+        fileUpload.dispatchEvent(new Event("change"));
+        statusFeedback.innerHTML = "";
         popupTitle.innerText = "Galerie photo";
         popupBtn.innerText = "Ajouter une photo";
         popupBtn.removeEventListener("click", handleUploadForm);
@@ -298,22 +316,38 @@ async function handleUploadForm() {
         case 201:
             const titleInput = document.getElementById("uploadTitle");
             const fileUpload = document.getElementById("fileUpload");
+
             titleInput.value = "";
             document.getElementById("categorieSelect").value = "";
             fileUpload.value = "";
             fileUpload.dispatchEvent(new Event("change"));
+
             const updatedWorks = await fetch(`${httpAdresse}/api/works`).then(res => res.json());
             workImgList.innerHTML = "";
             createWorkList(workImgList, updatedWorks);
             generateGallery(updatedWorks);
+
+            statusFeedback.classList.remove("errorDisplay");
+            showStatusMessage("Envoi réussi", "validationDisplay");
             break;
+
         case 401:
-
+            showStatusMessage("Authentification expirée", "errorDisplay");
             break;
-        default:
 
+        default:
+            showStatusMessage("Erreur lors de l'envoi, vérifiez les champs", "errorDisplay");
             break;
     }
+}
+
+//affichage de la réponse serveur lors de l'envoi du formulaire
+function showStatusMessage(message, classToAdd) {
+    const statusMessage = document.createElement("p");
+    statusMessage.innerText = message;
+    statusFeedback.classList.add(classToAdd);
+    statusFeedback.innerHTML = "";
+    statusFeedback.appendChild(statusMessage);
 }
 
 //modifications pour switch entre les deux popup
